@@ -1,18 +1,23 @@
 package dev.fritz2.binding
 
-abstract class LocalStorageStore<T, I>(initialValue: T, idProvider: IdProvider<T, I>) :
-    EntityStore<T, I>(initialValue) {
-    override val load: Handler<I>
-        get() = TODO("Not yet implemented")
-    override val saveOrUpdate: Handler<T>
-        get() = TODO("Not yet implemented")
-    override val delete: Handler<Unit>
-        get() = TODO("Not yet implemented")
+import org.w3c.dom.get
+import kotlin.browser.window
 
-    abstract val serializer: Serializer<T, String>
-}
+open class LocalStorageEntityStore<T, I>(
+    initialData: T,
+    val idProvider: IdProvider<T, I>,
+    val prefix: String = "",
+    val serializer: Serializer<T, String>
+) :
+    RootStore<T>(initialData), EntityStore<T, I> {
 
-class LocalStorageJsonStore<T, I>(initialValue: T, idProvider: IdProvider<T, I>) :
-    LocalStorageStore<T, I>(initialValue, idProvider) {
-    override val serializer = JsonSerializer<T>()
+    open fun key(id: I): String = id.toString()
+
+    override fun load(id: I): T? = window.localStorage["${prefix}${key(id)}"]?.let(serializer::read)
+
+    override fun saveOrUpdate(item: T) {
+        window.localStorage.setItem("${prefix}${key(idProvider(item))}", serializer.write(item))
+    }
+
+    override fun delete(id: I) = window.localStorage.removeItem("${prefix}${key(id)}")
 }
