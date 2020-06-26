@@ -19,12 +19,16 @@ fun main() {
 
     val store = object : LocalStorageEntityStore<Model, String>(
         Model(""),
-        Model::text,
-        "dev.fritz2.sample.",
+        { _ -> "" },
+        "dev.fritz2.sample",
         KotlinXJsonSerializer(Model.serializer())
     ) {
-        val sync = handle {
+        val save = handle {
             it.apply(::saveOrUpdate)
+        }
+
+        val load = handle {
+            load("") ?: Model("falsch")
         }
     }
 
@@ -55,8 +59,12 @@ fun main() {
             }
             div("form-group") {
                 button("btn btn-primary") {
-                    text("Add a dot")
-                    clicks handledBy store.sync
+                    text("Save")
+                    clicks handledBy store.save
+                }
+                button("btn btn-primary") {
+                    text("Load")
+                    clicks handledBy store.load
                 }
             }
         }
