@@ -1,7 +1,4 @@
-import dev.fritz2.binding.KotlinXJsonSerializer
-import dev.fritz2.binding.LocalStorageEntityStore
-import dev.fritz2.binding.const
-import dev.fritz2.binding.handledBy
+import dev.fritz2.binding.*
 import dev.fritz2.dom.html.render
 import dev.fritz2.dom.mount
 import dev.fritz2.dom.values
@@ -11,24 +8,21 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Model(val text: String)
+data class Model(val text: String, val id: String)
 
 @ExperimentalCoroutinesApi
 @FlowPreview
 fun main() {
 
+
     val store = object : LocalStorageEntityStore<Model, String>(
-        Model(""),
-        { _ -> "" },
-        "dev.fritz2.sample",
+        Model("", "12345"),
+        { "" },
+        { "dev.fritz2.sample" },
         KotlinXJsonSerializer(Model.serializer())
     ) {
-        val save = handle {
-            it.apply(::saveOrUpdate)
-        }
-
-        val load = handle {
-            load("") ?: Model("falsch")
+        init {
+            sync("", data)
         }
     }
 
@@ -58,17 +52,18 @@ fun main() {
                 }
             }
             div("form-group") {
-                button("btn btn-primary") {
-                    text("Save")
-                    clicks handledBy store.save
-                }
+                //button("btn btn-primary") {
+                //    text("Save")
+                //    clicks handledBy store.update
+                //}
                 button("btn btn-primary") {
                     text("Load")
-                    clicks handledBy store.load
+                    clicks.map { "" } handledBy store.load
                 }
             }
         }
     }
 
     gettingstarted.mount("target")
+
 }

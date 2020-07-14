@@ -6,18 +6,24 @@ import kotlin.browser.window
 open class LocalStorageEntityStore<T, I>(
     initialData: T,
     val idProvider: IdProvider<T, I>,
-    val prefix: String = "",
+    val keyProvider: (I) -> String,
     val serializer: Serializer<T, String>
 ) :
     RootStore<T>(initialData), EntityStore<T, I> {
 
-    open fun key(id: I): String = id.toString()
-
-    override fun load(id: I): T? = window.localStorage["${prefix}${key(id)}"]?.let(serializer::read)
-
-    override fun saveOrUpdate(item: T) {
-        window.localStorage.setItem("${prefix}${key(idProvider(item))}", serializer.write(item))
+    override val load = handle { model, id: I ->
+        println("loading $id")
+        window.localStorage[keyProvider(id)]?.let(serializer::read) ?: model
     }
 
-    override fun delete(id: I) = window.localStorage.removeItem("${prefix}${key(id)}")
+    override val saveOrUpdate = handle { model, item: T ->
+        println("saving $item")
+        window.localStorage.setItem(keyProvider(idProvider(item)), serializer.write(item))
+        model
+    }
+
+    override val delete = handle { model, id: I ->
+        window.localStorage.removeItem(keyProvider(id))
+        model
+    }
 }

@@ -1,9 +1,10 @@
 plugins {
-    id("dev.fritz2.fritz2-gradle") version "0.5"
+    id("dev.fritz2.fritz2-gradle") version "0.6"
     kotlin("plugin.serialization") version "1.3.72"
 }
 
 repositories {
+    mavenLocal()
     jcenter()
 }
 
@@ -16,6 +17,7 @@ kotlin {
             val commonMain by getting {
                 dependencies {
                     implementation(kotlin("stdlib"))
+                    implementation("dev.fritz2:core:0.6")
                     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
                 }
             }
