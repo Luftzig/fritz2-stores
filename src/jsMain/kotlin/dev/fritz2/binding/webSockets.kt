@@ -2,6 +2,7 @@ package dev.fritz2.binding
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.ArrayBufferView
 import org.w3c.dom.MessageEvent
@@ -59,4 +60,22 @@ open class WebSocketRemote(
     fun send(data: Blob) = socket.send(data)
     fun send(data: ArrayBuffer) = socket.send(data)
     fun send(data: ArrayBufferView) = socket.send(data)
+}
+
+open class WebSocketStore<T>(
+    initialData: T,
+    val url: String,
+    val serializer: Serializer<T, MessageEvent>,
+    val protocols: List<String> = listOf("")
+) : RootStore<T>(initialData) {
+    val remote = WebSocketRemote(url, protocols)
+
+    fun send(data: String) = remote.send(data)
+    fun send(data: Blob) = remote.send(data)
+    fun send(data: ArrayBuffer) = remote.send(data)
+    fun send(data: ArrayBufferView) = remote.send(data)
+
+    init {
+        remote.messages.map { serializer.read(it) } handledBy update
+    }
 }
